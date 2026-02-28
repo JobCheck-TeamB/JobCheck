@@ -30,7 +30,11 @@ export default function Register() {
                 navigate("/login");
             }
         } catch (error) {
-            alert(error.response?.data?.error || "Registration failed");
+            if (!error.response) {
+                alert("Cannot connect to server. Please ensure the backend is running.");
+            } else {
+                alert(error.response.data?.error || "Registration failed");
+            }
             console.error("Registration Error:", error);
         }
     };
@@ -127,7 +131,7 @@ export default function Register() {
                                         I agree to the <a href="#" className="text-gold hover:underline">Terms of Service</a> and <a href="#" className="text-gold hover:underline">Privacy Policy</a>.
                                     </label>
                                 </div>
-                                <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                                <div className={`flex items-center gap-3 bg-white/5 p-3 rounded-xl border transition-all ${isAdmin ? 'border-gold/50 bg-gold/5' : 'border-white/5'}`}>
                                     <input
                                         type="checkbox"
                                         className="accent-gold w-4 h-4"
@@ -135,9 +139,12 @@ export default function Register() {
                                         checked={isAdmin}
                                         onChange={(e) => setIsAdmin(e.target.checked)}
                                     />
-                                    <label htmlFor="admin-check" className="text-sm font-bold text-gray-300 cursor-pointer">
+                                    <label htmlFor="admin-check" className="text-sm font-bold text-gray-300 cursor-pointer flex-grow">
                                         Register as <span className="text-gold">Administrator</span>
                                     </label>
+                                    {roleParam === "admin" && (
+                                        <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded uppercase font-black">Pre-selected</span>
+                                    )}
                                 </div>
                             </div>
                         )}

@@ -4,6 +4,7 @@ import {
     Users, MessageSquare, ShieldCheck, Activity,
     Trash2, UserPlus, Clock, Search, ChevronRight, Loader2, AlertCircle
 } from "lucide-react";
+import AdminAnalytics from "../components/AdminAnalytics";
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState({ total_users: 0, total_feedback: 0, total_checks: 0 });
@@ -171,6 +172,9 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Analytics Section */}
+                        <AdminAnalytics activities={activities} />
                     </div>
                 )}
 

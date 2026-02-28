@@ -58,9 +58,46 @@ const Navbar = () => {
                             <Link to="/login" className="flex items-center gap-2 hover:text-gold transition-colors font-medium">
                                 <LogIn size={18} /> Login
                             </Link>
-                            <Link to="/register" className="btn-gold flex items-center gap-2 !py-2">
-                                <UserPlus size={18} /> Join Now
-                            </Link>
+
+                            {/* Join Now Dropdown */}
+                            <div className="relative group/join">
+                                <button className="btn-gold flex items-center gap-2 !py-2 cursor-default">
+                                    <UserPlus size={18} /> Join Now
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                <div className="absolute top-full right-0 mt-2 w-64 opacity-0 invisible group-hover/join:opacity-100 group-hover/join:visible transition-all duration-300 transform translate-y-2 group-hover/join:translate-y-0 z-[60]">
+                                    <div className="bg-dark-surface border border-white/10 rounded-2xl shadow-2xl p-2 backdrop-blur-xl">
+                                        <Link
+                                            to="/register?role=user"
+                                            className="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors group/item"
+                                        >
+                                            <div className="bg-gold/10 p-2 rounded-lg text-gold group-hover/item:bg-gold group-hover/item:text-dark transition-all">
+                                                <User size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm text-white">Join as Job Seeker</p>
+                                                <p className="text-[10px] text-gray-500 mt-0.5">Find elite career opportunities</p>
+                                            </div>
+                                        </Link>
+
+                                        <div className="h-px bg-white/5 my-1 mx-2"></div>
+
+                                        <Link
+                                            to="/register?role=admin"
+                                            className="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors group/item"
+                                        >
+                                            <div className="bg-gold/10 p-2 rounded-lg text-gold group-hover/item:bg-gold group-hover/item:text-dark transition-all">
+                                                <Briefcase size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm text-white">Join as Administrator</p>
+                                                <p className="text-[10px] text-gray-500 mt-0.5">Manage talent & platform stats</p>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
                         </>
                     )}
                 </div>
@@ -95,7 +132,10 @@ const Navbar = () => {
                     ) : (
                         <>
                             <Link to="/login" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Login</Link>
-                            <Link to="/register" className="btn-gold text-center py-3" onClick={() => setIsOpen(false)}>Join Now</Link>
+                            <div className="flex flex-col gap-2 pt-2">
+                                <Link to="/register?role=user" className="btn-gold text-center py-3" onClick={() => setIsOpen(false)}>Join as Job Seeker</Link>
+                                <Link to="/register?role=admin" className="bg-white/5 text-white border border-white/10 text-center py-3 rounded-xl font-bold hover:bg-white/10 transition-all" onClick={() => setIsOpen(false)}>Join as Administrator</Link>
+                            </div>
                         </>
                     )}
                 </div>
