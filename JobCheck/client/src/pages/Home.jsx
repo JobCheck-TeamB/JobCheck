@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Search, MapPin, Briefcase, TrendingUp, Users, Building2, ChevronRight, Star } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { MOCK_JOBS } from "../data/mockJobs";
 
 const Home = () => {
     const [title, setTitle] = useState("");
@@ -136,28 +137,28 @@ const Home = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="bg-dark-surface border border-white/10 p-8 rounded-3xl hover:shadow-gold/5 hover:shadow-2xl transition-all group">
+                        {MOCK_JOBS.slice(0, 4).map((job) => (
+                            <div key={job.id} className="bg-dark-surface border border-white/10 p-8 rounded-3xl hover:shadow-gold/5 hover:shadow-2xl transition-all group">
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="flex gap-4">
                                         <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center">
-                                            <Building2 className="text-gold" />
+                                            {job.logo ? React.cloneElement(job.logo, { className: "text-gold" }) : <Building2 className="text-gold" />}
                                         </div>
                                         <div>
-                                            <h4 className="text-xl font-bold group-hover:text-gold transition-colors">Senior Software Engineer</h4>
-                                            <p className="text-gray-500 font-medium">Meta Platforms • London, UK</p>
+                                            <h4 className="text-xl font-bold group-hover:text-gold transition-colors">{job.title}</h4>
+                                            <p className="text-gray-500 font-medium">{job.company} • {job.location}</p>
                                         </div>
                                     </div>
-                                    <span className="bg-gold/10 text-gold px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Full Time</span>
+                                    <span className="bg-gold/10 text-gold px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">{job.type}</span>
                                 </div>
                                 <div className="flex gap-3 mb-8">
-                                    {["React", "Node.js", "AWS"].map(tag => (
-                                        <span key={tag} className="bg-white/5 text-gray-400 px-3 py-1 rounded-lg text-xs font-medium">{tag}</span>
+                                    {(job.tags || job.requirements.slice(0, 3).map(r => r.split(' ').slice(-1)[0])).map((tag, idx) => (
+                                        <span key={idx} className="bg-white/5 text-gray-400 px-3 py-1 rounded-lg text-xs font-medium">{tag}</span>
                                     ))}
                                 </div>
                                 <div className="flex justify-between items-center pt-6 border-t border-white/5">
-                                    <span className="text-2xl font-bold">$120k - $180k <span className="text-sm text-gray-500 font-normal">/ year</span></span>
-                                    <button className="text-gold font-bold hover:underline">Apply Now</button>
+                                    <span className="text-2xl font-bold">{job.salary} <span className="text-sm text-gray-500 font-normal">/ year</span></span>
+                                    <Link to={`/jobs/${job.id}`} className="text-gold font-bold hover:underline">Apply Now</Link>
                                 </div>
                             </div>
                         ))}

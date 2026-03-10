@@ -23,7 +23,11 @@ export default function Login() {
                 localStorage.setItem("fullname", response.data.fullname || "");
                 localStorage.setItem("is_admin", response.data.is_admin ? "true" : "false");
                 alert("Login Successful");
-                navigate("/dashboard");
+                if (response.data.is_admin) {
+                    navigate("/admin-control");
+                } else {
+                    navigate("/dashboard");
+                }
             }
         } catch (error) {
             alert("Invalid Credentials");

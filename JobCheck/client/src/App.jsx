@@ -8,7 +8,7 @@ import Jobs from "./pages/Jobs";
 import JobDetails from "./pages/JobDetails";
 import PostJob from "./pages/PostJob";
 import Feedback from "./pages/Feedback";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminControl from "./pages/AdminControl";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -72,10 +72,10 @@ function App() {
               }
             />
             <Route
-              path="/admin-dashboard"
+              path="/admin-control"
               element={
                 <ProtectedRoute>
-                  <AdminDashboard />
+                  <AdminControl />
                 </ProtectedRoute>
               }
             />

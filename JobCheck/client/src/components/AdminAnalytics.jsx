@@ -4,21 +4,29 @@ import {
     ArcElement,
     CategoryScale,
     LinearScale,
+    PointElement,
+    LineElement,
     BarElement,
+    RadialLinearScale,
     Title,
     Tooltip,
     Legend,
+    Filler
 } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
+import { Pie, Bar, Line, Radar } from 'react-chartjs-2';
 
 ChartJS.register(
     ArcElement,
     CategoryScale,
     LinearScale,
+    PointElement,
+    LineElement,
     BarElement,
+    RadialLinearScale,
     Title,
     Tooltip,
-    Legend
+    Legend,
+    Filler
 );
 
 const AdminAnalytics = ({ activities }) => {
@@ -48,8 +56,7 @@ const AdminAnalytics = ({ activities }) => {
         ],
     };
 
-    // 2. Process Data for Bar Chart (Time Trend)
-    // We'll group by date. activities entries have 'timestamp' like '2026-03-01 00:11:07'
+    // 2. Process Data for Trend Chart
     const trendData = activities.reduce((acc, act) => {
         const date = act.timestamp.split(' ')[0];
         if (!acc[date]) {
@@ -62,34 +69,58 @@ const AdminAnalytics = ({ activities }) => {
 
     const sortedDates = Object.keys(trendData).sort();
 
-    const barData = {
-        labels: sortedDates,
+    const lineData = {
+        labels: sortedDates.map(d => d.split('-').slice(1).join('/')), // MM/DD format
         datasets: [
             {
                 label: 'Real Jobs',
                 data: sortedDates.map(d => trendData[d].real),
-                backgroundColor: 'rgba(212, 175, 55, 0.6)', // Gold
                 borderColor: '#D4AF37',
-                borderWidth: 1,
+                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#D4AF37',
             },
             {
                 label: 'Fake Jobs',
                 data: sortedDates.map(d => trendData[d].fake),
-                backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle White
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.4)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: 'rgba(255, 255, 255, 0.4)',
             },
         ],
     };
 
+    // 3. System Health Radar Data (Mocked based on stats or fixed parameters)
+    const radarData = {
+        labels: ['AI Precision', 'DB Latency', 'API Speed', 'Security', 'Uptime', 'Load'],
+        datasets: [{
+            label: 'System Performance',
+            data: [92, 88, 95, 98, 99.9, 15],
+            backgroundColor: 'rgba(212, 175, 55, 0.2)',
+            borderColor: '#D4AF37',
+            pointBackgroundColor: '#D4AF37',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#D4AF37'
+        }]
+    };
+
     const chartOptions = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: 'bottom',
                 labels: {
                     color: '#9ca3af',
-                    font: { size: 12, weight: 'bold' }
+                    font: { size: 10, weight: 'bold' },
+                    usePointStyle: true,
+                    padding: 20
                 }
             },
             tooltip: {
@@ -104,61 +135,92 @@ const AdminAnalytics = ({ activities }) => {
         },
         scales: {
             y: {
-                ticks: { color: '#6b7280' },
+                ticks: { color: '#6b7280', font: { size: 10 } },
                 grid: { color: 'rgba(255,255,255,0.05)' }
             },
             x: {
-                ticks: { color: '#6b7280' },
+                ticks: { color: '#6b7280', font: { size: 10 } },
                 grid: { display: false }
             }
         }
     };
 
+    const radarOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            r: {
+                angleLines: { color: 'rgba(255,255,255,0.1)' },
+                grid: { color: 'rgba(255,255,255,0.1)' },
+                pointLabels: { color: '#9ca3af', font: { size: 10, weight: 'bold' } },
+                ticks: { display: false }
+            }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    };
+
     const pieOptions = {
-        ...chartOptions,
-        scales: undefined, // Pie chart doesn't use scales
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    color: '#9ca3af',
+                    font: { size: 10, weight: 'bold' },
+                    usePointStyle: true
+                }
+            }
+        }
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            {/* Pie Chart Card */}
-            <div className="lg:col-span-1 bg-dark-surface border border-white/10 p-8 md:p-10 rounded-[40px] flex flex-col items-center">
-                <h3 className="text-2xl font-serif font-bold mb-2 text-center w-full">Detection <span className="text-gold">Ratio</span></h3>
-                <p className="text-xs text-gray-500 uppercase tracking-widest font-black mb-8 text-center uppercase">Real vs Fake breakdown</p>
-
-                <div className="w-full max-w-[280px] aspect-square relative mb-8">
-                    <Pie data={pieData} options={pieOptions} />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                        {/* Hidden center text if needed */}
+        <div className="space-y-8 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Detection Ratio (Pie) */}
+                <div className="bg-dark-surface border border-white/10 p-8 rounded-[40px] flex flex-col">
+                    <div className="mb-6">
+                        <h3 className="text-xl font-serif font-bold">Detection <span className="text-gold">Ratio</span></h3>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Real vs Fake Analysis</p>
+                    </div>
+                    <div className="h-[240px] w-full relative">
+                        <Pie data={pieData} options={pieOptions} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mt-6">
+                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-center">
+                            <p className="text-[10px] text-gray-500 font-bold mb-1">REAL</p>
+                            <p className="text-lg font-serif font-bold text-green-500">{realPercentage}%</p>
+                        </div>
+                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-center">
+                            <p className="text-[10px] text-gray-500 font-bold mb-1">FAKE</p>
+                            <p className="text-lg font-serif font-bold text-red-500">{fakePercentage}%</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 w-full">
-                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
-                        <p className="text-[10px] text-gray-500 font-black uppercase mb-1">Real</p>
-                        <p className="text-xl font-serif font-bold text-green-500">{realPercentage}%</p>
+                {/* System Health (Radar) */}
+                <div className="bg-dark-surface border border-white/10 p-8 rounded-[40px] flex flex-col">
+                    <div className="mb-6">
+                        <h3 className="text-xl font-serif font-bold">System <span className="text-gold">Health</span></h3>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Performance Metrics</p>
                     </div>
-                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
-                        <p className="text-[10px] text-gray-500 font-black uppercase mb-1">Fake</p>
-                        <p className="text-xl font-serif font-bold text-red-500">{fakePercentage}%</p>
+                    <div className="h-[240px] w-full">
+                        <Radar data={radarData} options={radarOptions} />
                     </div>
-                </div>
-            </div>
-
-            {/* Bar Chart Card */}
-            <div className="lg:col-span-2 bg-dark-surface border border-white/10 p-8 md:p-10 rounded-[40px]">
-                <div className="flex justify-between items-start mb-10">
-                    <div>
-                        <h3 className="text-2xl font-serif font-bold mb-1">Detection <span className="text-gold">Timeline</span></h3>
-                        <p className="text-xs text-gray-500 uppercase tracking-widest font-black">Daily trend analysis</p>
-                    </div>
-                    <div className="bg-gold/10 text-gold px-4 py-2 rounded-xl text-xs font-bold border border-gold/20">
-                        Live Analytics
-                    </div>
+                    <p className="text-center text-[10px] text-gray-500 font-bold uppercase mt-4 tracking-tighter">Operational Efficiency: <span className="text-gold">Sublime</span></p>
                 </div>
 
-                <div className="h-[320px] w-full">
-                    <Bar data={barData} options={chartOptions} />
+                {/* Detection Timeline (Line) */}
+                <div className="bg-dark-surface border border-white/10 p-8 rounded-[40px] flex flex-col lg:col-span-1">
+                    <div className="mb-6">
+                        <h3 className="text-xl font-serif font-bold">Activity <span className="text-gold">Trend</span></h3>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Daily Analysis Flow</p>
+                    </div>
+                    <div className="h-[240px] w-full">
+                        <Line data={lineData} options={chartOptions} />
+                    </div>
                 </div>
             </div>
         </div>

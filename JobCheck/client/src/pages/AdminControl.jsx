@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import API from "../services/api";
 import {
     Users, MessageSquare, ShieldCheck, Activity,
-    Trash2, UserPlus, Clock, Search, ChevronRight, Loader2, AlertCircle
+    Trash2, UserPlus, Clock, Search, ChevronRight, Loader2, AlertCircle,
+    Zap, TrendingUp, BarChart3
 } from "lucide-react";
 import AdminAnalytics from "../components/AdminAnalytics";
 
-export default function AdminDashboard() {
+export default function AdminControl() {
     const [stats, setStats] = useState({ total_users: 0, total_feedback: 0, total_checks: 0 });
     const [users, setUsers] = useState([]);
     const [feedback, setFeedback] = useState([]);
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
                         <div className="inline-flex items-center gap-2 bg-gold/10 text-gold text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
                             System Control Panel
                         </div>
-                        <h1 className="text-5xl font-serif font-bold">Admin <span className="text-gold">Command</span></h1>
+                        <h1 className="text-5xl font-serif font-bold">Admin <span className="text-gold">Control</span></h1>
                     </div>
 
                     <div className="flex bg-dark-surface border border-white/10 p-1.5 rounded-2xl">
@@ -97,84 +98,61 @@ export default function AdminDashboard() {
                         {/* Stats Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {[
-                                { title: "Total Members", value: stats.total_users, icon: <Users />, color: "gold" },
-                                { title: "Job Analysis Logs", value: stats.total_checks, icon: <Search />, color: "gold" },
-                                { title: "Feedback Entries", value: stats.total_feedback, icon: <MessageSquare />, color: "gold" },
-                                { title: "System Uptime", value: "99.9%", icon: <Activity />, color: "green" }
+                                { title: "Total Members", value: stats.total_users, icon: <Users />, color: "gold", trend: "+12%" },
+                                { title: "Job Analysis Logs", value: stats.total_checks, icon: <BarChart3 />, color: "gold", trend: "+24%" },
+                                { title: "Feedback Entries", value: stats.total_feedback, icon: <MessageSquare />, color: "gold", trend: "Stable" },
+                                { title: "System Uptime", value: "99.9%", icon: <Zap />, color: "gold", trend: "Perfect" }
                             ].map((s, i) => (
-                                <div key={i} className="bg-dark-surface border border-white/10 p-8 rounded-[32px] hover:border-gold/30 transition-all group">
+                                <div key={i} className="bg-dark-surface border border-white/10 p-8 rounded-[32px] hover:border-gold/30 transition-all group relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        {s.icon}
+                                    </div>
                                     <div className="bg-white/5 w-12 h-12 flex items-center justify-center rounded-xl text-gold mb-6 group-hover:bg-gold group-hover:text-dark transition-all">
                                         {s.icon}
                                     </div>
                                     <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black mb-1">{s.title}</p>
-                                    <h3 className="text-3xl font-serif font-bold">{s.value}</h3>
+                                    <div className="flex items-baseline gap-3">
+                                        <h3 className="text-3xl font-serif font-bold">{s.value}</h3>
+                                        <span className="text-[10px] text-green-500 font-bold">{s.trend}</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
 
-                        {/* Recent Activity Mockup */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div className="bg-dark-surface border border-white/10 p-8 md:p-10 rounded-[40px]">
-                                <h3 className="text-2xl font-serif font-bold mb-8 flex items-center gap-3">
-                                    Recent Job Analysis <Clock className="text-gold" size={24} />
-                                </h3>
-                                <div className="space-y-6">
-                                    {activities.slice(0, 4).map((act, i) => (
-                                        <div key={i} className="flex gap-4 items-center p-3 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
-                                            <div className={`w-2 h-12 rounded-full ${act.result === 'Real Job' ? 'bg-green-500/50' : 'bg-red-500/50'}`}></div>
-                                            <div className="flex-1">
-                                                <div className="flex justify-between">
-                                                    <span className="text-xs font-bold text-gray-300">@{act.username} checked a job</span>
-                                                    <span className="text-[10px] text-gray-500 uppercase font-black">{act.confidence} Sure</span>
-                                                </div>
-                                                <p className="text-sm font-bold text-white line-clamp-1">{act.result}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <button onClick={() => setActiveTab("activities")} className="w-full py-4 text-gold font-bold text-sm hover:underline flex items-center justify-center gap-2">
-                                        View Full Audit Log <ChevronRight size={16} />
-                                    </button>
-                                </div>
-                            </div>
+                        {/* Enhanced Analytics Section */}
+                        <AdminAnalytics activities={activities} />
 
-                            <div className="bg-dark-surface border border-white/10 p-8 md:p-10 rounded-[40px]">
-                                <h3 className="text-2xl font-serif font-bold mb-8 flex items-center gap-3">
-                                    System Performance <Activity className="text-gold" size={24} />
-                                </h3>
-                                <div className="space-y-8 py-4">
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                                            <span className="text-gray-500">AI Model Load</span>
-                                            <span className="text-gold">15%</span>
-                                        </div>
-                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                            <div className="h-full bg-gold w-[15%] rounded-full shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                                            <span className="text-gray-500">Database Capacity</span>
-                                            <span className="text-gold">42%</span>
-                                        </div>
-                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                            <div className="h-full bg-gold w-[42%] rounded-full shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
+                        {/* Secondary Graphical Section */}
+                        <div className="bg-dark-surface border border-white/10 p-10 rounded-[48px] relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gold/5 blur-[80px] rounded-full -mr-20 -mt-20"></div>
+                            <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
+                                <div className="flex-1">
+                                    <h3 className="text-3xl font-serif font-bold mb-4">Administrative <span className="text-gold">Intelligence</span></h3>
+                                    <p className="text-gray-400 font-medium leading-relaxed mb-8 max-w-lg">
+                                        System-wide analytics are processed in real-time. Every job check and user interaction is indexed to provide deep insights into platform health and security.
+                                    </p>
+                                    <div className="flex flex-wrap gap-4">
+                                        <button onClick={() => setActiveTab("activities")} className="btn-gold !px-8 !py-4 rounded-2xl flex items-center gap-2">
+                                            Audit Logs <ChevronRight size={18} />
+                                        </button>
+                                        <div className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3">
+                                            <TrendingUp className="text-gold" size={20} />
+                                            <span className="text-sm font-bold text-white">Market Connectivity: High</span>
                                         </div>
                                     </div>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
-                                            <span className="text-gray-500">API Response Time</span>
-                                            <span className="text-green-500">Excellent</span>
-                                        </div>
-                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                            <div className="h-full bg-green-500 w-[88%] rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-                                        </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 w-full md:w-auto">
+                                    <div className="bg-white/5 p-8 rounded-[32px] border border-white/5 backdrop-blur-sm">
+                                        <h4 className="text-4xl font-serif font-bold text-gold mb-2">98.2%</h4>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">AI Accuracy</p>
+                                    </div>
+                                    <div className="bg-white/5 p-8 rounded-[32px] border border-white/5 backdrop-blur-sm">
+                                        <h4 className="text-4xl font-serif font-bold text-white mb-2">1.2s</h4>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">API Latency</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Analytics Section */}
-                        <AdminAnalytics activities={activities} />
                     </div>
                 )}
 

@@ -123,39 +123,14 @@ export default function Register() {
                             <p className="text-[10px] text-gray-500 ml-1 italic">Must be at least 8 characters long with a mix of letters and numbers.</p>
                         </div>
 
-                        {roleParam !== "user" && (
-                            <div className="flex flex-col gap-3 py-2">
-                                <div className="flex items-start gap-3">
-                                    <input type="checkbox" className="mt-1 accent-gold" required id="terms" />
-                                    <label htmlFor="terms" className="text-xs text-gray-400 leading-relaxed">
-                                        I agree to the <a href="#" className="text-gold hover:underline">Terms of Service</a> and <a href="#" className="text-gold hover:underline">Privacy Policy</a>.
-                                    </label>
-                                </div>
-                                <div className={`flex items-center gap-3 bg-white/5 p-3 rounded-xl border transition-all ${isAdmin ? 'border-gold/50 bg-gold/5' : 'border-white/5'}`}>
-                                    <input
-                                        type="checkbox"
-                                        className="accent-gold w-4 h-4"
-                                        id="admin-check"
-                                        checked={isAdmin}
-                                        onChange={(e) => setIsAdmin(e.target.checked)}
-                                    />
-                                    <label htmlFor="admin-check" className="text-sm font-bold text-gray-300 cursor-pointer flex-grow">
-                                        Register as <span className="text-gold">Administrator</span>
-                                    </label>
-                                    {roleParam === "admin" && (
-                                        <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded uppercase font-black">Pre-selected</span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                        {roleParam === "user" && (
-                            <div className="flex items-start gap-3 py-4">
+                        <div className="flex flex-col gap-3 py-2">
+                            <div className="flex items-start gap-3">
                                 <input type="checkbox" className="mt-1 accent-gold" required id="terms" />
                                 <label htmlFor="terms" className="text-xs text-gray-400 leading-relaxed">
                                     I agree to the <a href="#" className="text-gold hover:underline">Terms of Service</a> and <a href="#" className="text-gold hover:underline">Privacy Policy</a>.
                                 </label>
                             </div>
-                        )}
+                        </div>
 
                         <button type="submit" className="btn-gold w-full py-4 rounded-2xl flex items-center justify-center gap-2 group mt-4">
                             Create Account <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />

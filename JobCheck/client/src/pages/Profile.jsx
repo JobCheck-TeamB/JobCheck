@@ -53,13 +53,31 @@ export default function Profile() {
                             </div>
                         </div>
 
-                        <div className="mt-12 flex items-center gap-4 p-6 bg-gold/5 border border-gold/10 rounded-2xl">
-                            <ShieldCheck className="text-gold" size={24} />
-                            <div>
-                                <p className="text-sm font-bold text-white">Account Verified</p>
-                                <p className="text-xs text-gray-400">You have full access to JobCheck features.</p>
+                        {localStorage.getItem("is_admin") === "true" ? (
+                            <div className="mt-12 flex flex-col gap-4">
+                                <div className="flex items-center gap-4 p-6 bg-gold/10 border border-gold/30 rounded-2xl shadow-lg shadow-gold/5">
+                                    <ShieldCheck className="text-gold" size={24} />
+                                    <div>
+                                        <p className="text-sm font-black text-gold uppercase tracking-widest">Administrator Account</p>
+                                        <p className="text-xs text-gray-400">You have full administrative control over the platform.</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => window.location.href = "/admin-control"}
+                                    className="btn-gold w-full py-4 rounded-2xl font-black text-center shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all"
+                                >
+                                    Go to Admin Control Panel
+                                </button>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="mt-12 flex items-center gap-4 p-6 bg-gold/5 border border-gold/10 rounded-2xl">
+                                <ShieldCheck className="text-gold" size={24} />
+                                <div>
+                                    <p className="text-sm font-bold text-white">Account Verified</p>
+                                    <p className="text-xs text-gray-400">You have full access to JobCheck features.</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

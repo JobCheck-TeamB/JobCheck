@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, LogIn, UserPlus, Menu, X, LayoutDashboard, User, LogOut } from "lucide-react";
+import { Briefcase, LogIn, UserPlus, Menu, X, LayoutDashboard, User, LogOut, ShieldCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const Navbar = () => {
@@ -33,12 +33,14 @@ const Navbar = () => {
                         <>
                             <Link to="/jobs" className="hover:text-gold transition-colors font-medium">Find Jobs</Link>
                             <Link to="/feedback" className="hover:text-gold transition-colors font-medium">Feedback</Link>
-                            <Link to="/dashboard" className="flex items-center gap-2 hover:text-gold transition-colors font-medium">
-                                <LayoutDashboard size={18} /> Dashboard
-                            </Link>
+                            {localStorage.getItem("is_admin") !== "true" && (
+                                <Link to="/dashboard" className="flex items-center gap-2 hover:text-gold transition-colors font-medium">
+                                    <ShieldCheck size={18} /> Verify Job
+                                </Link>
+                            )}
                             {localStorage.getItem("is_admin") === "true" && (
-                                <Link to="/admin-dashboard" className="flex items-center gap-2 text-gold hover:text-white transition-colors font-bold uppercase tracking-tighter text-xs bg-gold/10 px-3 py-1.5 rounded-lg border border-gold/20">
-                                    Admin Control
+                                <Link to="/admin-control" className="flex items-center gap-2 bg-gold text-dark px-4 py-2 rounded-xl font-black text-sm hover:bg-white hover:text-dark transition-all shadow-lg shadow-gold/20 animate-pulse-slow">
+                                    <LayoutDashboard size={18} /> Admin Control
                                 </Link>
                             )}
                             <Link to="/profile" className="flex items-center gap-2 hover:text-gold transition-colors font-medium">
@@ -117,9 +119,13 @@ const Navbar = () => {
                         <>
                             <Link to="/jobs" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Find Jobs</Link>
                             <Link to="/feedback" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Feedback</Link>
-                            <Link to="/dashboard" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Dashboard</Link>
+                            {localStorage.getItem("is_admin") !== "true" && (
+                                <Link to="/dashboard" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Verify Job</Link>
+                            )}
                             {localStorage.getItem("is_admin") === "true" && (
-                                <Link to="/admin-dashboard" className="text-lg py-2 border-b border-gold/20 text-gold font-bold" onClick={() => setIsOpen(false)}>Admin Control</Link>
+                                <Link to="/admin-control" className="text-lg py-3 border-b-2 border-gold text-gold font-black flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                                    <LayoutDashboard size={20} /> Admin Control
+                                </Link>
                             )}
                             <Link to="/profile" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Profile</Link>
                             <button

@@ -24,7 +24,8 @@ export const MOCK_JOBS = [
             "Health, dental, and vision insurance",
             "Remote-first culture",
             "Annual team offsites"
-        ]
+        ],
+        tags: ["Figma", "UI/UX", "Product"]
     },
     {
         id: "2",
@@ -48,7 +49,8 @@ export const MOCK_JOBS = [
             "Home office stipend",
             "Global health coverage",
             "Learning and development budget"
-        ]
+        ],
+        tags: ["React", "Next.js", "TypeScript"]
     },
     {
         id: "3",
@@ -72,7 +74,8 @@ export const MOCK_JOBS = [
             "Paid volunteer time",
             "Stock options",
             "Community involvement programs"
-        ]
+        ],
+        tags: ["Marketing", "Strategy", "Brand"]
     },
     {
         id: "4",
@@ -96,7 +99,8 @@ export const MOCK_JOBS = [
             "Comprehensive medical coverage",
             "Retirement savings plan",
             "Commuter benefits"
-        ]
+        ],
+        tags: ["Go", "APIs", "Backend"]
     },
     {
         id: "5",
