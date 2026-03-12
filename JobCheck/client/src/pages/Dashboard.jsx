@@ -4,6 +4,8 @@ import { ShieldCheck, Search, AlertTriangle, Briefcase, ArrowRight, Loader2 } fr
 
 function Dashboard() {
     const [description, setDescription] = useState("");
+    const [jobTitle, setJobTitle] = useState("");
+    const [company, setCompany] = useState("");
     const [result, setResult] = useState("");
     const [confidence, setConfidence] = useState("");
     const [loading, setLoading] = useState(false);
@@ -15,7 +17,11 @@ function Dashboard() {
         setConfidence("");
 
         try {
-            const response = await API.post("/predict", { description });
+            const response = await API.post("/predict", { 
+                description,
+                job_title: jobTitle,
+                company: company
+            });
             setResult(response.data.result);
             setConfidence(response.data.confidence);
         } catch (error) {
@@ -49,6 +55,29 @@ function Dashboard() {
                                 <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Status</p>
                                 <p className="text-sm font-medium">Active Account</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300 ml-1">Job Title</label>
+                            <input
+                                type="text"
+                                className="input-field py-4 px-4 text-sm"
+                                placeholder="e.g. Senior Software Engineer"
+                                value={jobTitle}
+                                onChange={(e) => setJobTitle(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300 ml-1">Company Name</label>
+                            <input
+                                type="text"
+                                className="input-field py-4 px-4 text-sm"
+                                placeholder="e.g. Google"
+                                value={company}
+                                onChange={(e) => setCompany(e.target.value)}
+                            />
                         </div>
                     </div>
 

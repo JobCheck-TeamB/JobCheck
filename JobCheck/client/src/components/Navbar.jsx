@@ -32,7 +32,9 @@ const Navbar = () => {
                     {token ? (
                         <>
                             <Link to="/jobs" className="hover:text-gold transition-colors font-medium">Find Jobs</Link>
-                            <Link to="/feedback" className="hover:text-gold transition-colors font-medium">Feedback</Link>
+                            {localStorage.getItem("is_admin") !== "true" && (
+                                <Link to="/feedback" className="hover:text-gold transition-colors font-medium">Feedback</Link>
+                            )}
                             {localStorage.getItem("is_admin") !== "true" && (
                                 <Link to="/dashboard" className="flex items-center gap-2 hover:text-gold transition-colors font-medium">
                                     <ShieldCheck size={18} /> Verify Job
@@ -118,7 +120,9 @@ const Navbar = () => {
                     {token ? (
                         <>
                             <Link to="/jobs" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Find Jobs</Link>
-                            <Link to="/feedback" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Feedback</Link>
+                            {localStorage.getItem("is_admin") !== "true" && (
+                                <Link to="/feedback" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Feedback</Link>
+                            )}
                             {localStorage.getItem("is_admin") !== "true" && (
                                 <Link to="/dashboard" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Verify Job</Link>
                             )}

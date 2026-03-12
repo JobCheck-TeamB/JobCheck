@@ -18,7 +18,7 @@ export default function Profile() {
                             <User size={48} />
                         </div>
                         <h1 className="text-4xl font-serif font-bold mb-3 uppercase tracking-tight">
-                            User <span className="text-gold">Profile</span>
+                            {localStorage.getItem("is_admin") === "true" ? "Admin" : "User"} <span className="text-gold">Profile</span>
                         </h1>
                         <p className="text-gray-400">Manage your account details</p>
                     </div>

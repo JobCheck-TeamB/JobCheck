@@ -52,22 +52,36 @@ class JobLog(db.Model):
     __tablename__ = 'job_logs'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    job_title = db.Column(db.String(200), nullable=True)
+    company = db.Column(db.String(100), nullable=True)
     description = db.Column(db.Text, nullable=False)
     result = db.Column(db.String(50), nullable=False)
     confidence = db.Column(db.String(10), nullable=False)
+    is_flagged = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=db.func.now())
 
 # Initialize database
 with app.app_context():
     db.create_all()
     
-    # Migration helper for existing DB
+    # Migration helper for existing DB - adding columns individually
     from sqlalchemy import text
-    try:
-        db.session.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0"))
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
+    columns_to_add = [
+        ("users", "is_admin", "BOOLEAN DEFAULT 0"),
+        ("job_logs", "job_title", "VARCHAR(200)"),
+        ("job_logs", "company", "VARCHAR(100)"),
+        ("job_logs", "is_flagged", "BOOLEAN DEFAULT 0")
+    ]
+    
+    for table, column, col_type in columns_to_add:
+        try:
+            db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
+            db.session.commit()
+            print(f"Added column {column} to {table}")
+        except Exception:
+            db.session.rollback()
+            # Column likely already exists, ignore
+            pass
 
 # Load ML Model
 try:
@@ -223,7 +237,7 @@ def admin_feedback():
         "email": f.email,
         "subject": f.subject,
         "message": f.message,
-        "created_at": f.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        "created_at": f.created_at.strftime("%Y-%m-%d %H:%M:%S") if f.created_at else "Unknown"
     } for f in feedbacks]
     
     return jsonify(feedback_list)
@@ -239,13 +253,88 @@ def admin_activity():
     log_list = [{
         "id": log.JobLog.id,
         "username": log.User.username,
+        "job_title": log.JobLog.job_title or "Untitled Analysis",
+        "company": log.JobLog.company or "N/A",
         "description": log.JobLog.description,
         "result": log.JobLog.result,
         "confidence": log.JobLog.confidence,
-        "timestamp": log.JobLog.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        "is_flagged": log.JobLog.is_flagged,
+        "timestamp": log.JobLog.timestamp.strftime("%Y-%m-%d %H:%M:%S") if log.JobLog.timestamp else "Unknown"
     } for log in logs]
     
     return jsonify(log_list)
+
+@app.route("/admin/users/<int:user_id>", methods=["DELETE"])
+@jwt_required()
+def delete_user(user_id):
+    current_admin = get_jwt_identity()
+    if not check_admin(current_admin):
+        return jsonify({"error": "Admin access required"}), 403
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    if user.username == current_admin:
+        return jsonify({"error": "You cannot delete your own admin account"}), 400
+
+    try:
+        # Delete related logs and feedback first if needed, 
+        # but here we'll just delete the user
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"message": "User deleted successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/jobs/<int:job_id>/flag", methods=["POST"])
+@jwt_required()
+def toggle_flag(job_id):
+    current_user = get_jwt_identity()
+    if not check_admin(current_user):
+        return jsonify({"error": "Admin access required"}), 403
+    
+    log = JobLog.query.get(job_id)
+    if not log:
+        return jsonify({"error": "Log not found"}), 404
+    
+    log.is_flagged = not log.is_flagged
+    db.session.commit()
+    return jsonify({"message": "Status updated", "is_flagged": log.is_flagged})
+
+@app.route("/admin/retrain", methods=["POST"])
+@jwt_required()
+def retrain_model():
+    current_user = get_jwt_identity()
+    if not check_admin(current_user):
+        return jsonify({"error": "Admin access required"}), 403
+    
+    try:
+        # Run the training script logic
+        import subprocess
+        # Using sys.executable to run with the current python environment
+        import sys
+        result = subprocess.run([sys.executable, "train_model.py"], capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            # Reload models
+            global model, vectorizer
+            model = pickle.load(open("model.pkl", "rb"))
+            vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+            return jsonify({"message": "Intelligence retrained and reloaded successfully!"})
+        else:
+            return jsonify({"error": f"Retraining failed: {result.stderr}"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Global Error Handler
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Pass through HTTP errors
+    if hasattr(e, 'code') and hasattr(e, 'description'):
+        return jsonify({"error": e.description}), e.code
+    return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 # ------------------ PREDICT (Protected) ------------------
 
@@ -255,7 +344,13 @@ def predict():
     current_username = get_jwt_identity()
     user = User.query.filter_by(username=current_username).first()
     
-    data = request.json["description"]
+    data = request.json.get("description")
+    job_title = request.json.get("job_title", "")
+    company = request.json.get("company", "")
+
+    if not data:
+        return jsonify({"error": "No description provided"}), 400
+
     transformed = vectorizer.transform([data])
     
     prediction = model.predict(transformed)[0]
@@ -268,6 +363,8 @@ def predict():
     try:
         new_log = JobLog(
             user_id=user.id,
+            job_title=job_title,
+            company=company,
             description=data,
             result=result_str,
             confidence=confidence_str
@@ -287,4 +384,4 @@ def predict():
 # ------------------
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)

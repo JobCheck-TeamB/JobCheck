@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Search, MapPin, Briefcase, Filter, ChevronRight, Building2, Star, Clock, IndianRupee } from "lucide-react";
+import { Search, MapPin, Briefcase, Filter, ChevronRight, Building2, Star, Clock, IndianRupee, AlertTriangle, Flag } from "lucide-react";
+import API from "../services/api";
 import { Link, useSearchParams } from "react-router-dom";
 import { MOCK_JOBS } from "../data/mockJobs";
 
@@ -52,6 +53,23 @@ const Jobs = () => {
         if (q) params.set("q", q);
         if (l) params.set("l", l);
         setSearchParams(params);
+    };
+
+    const handleFlag = async (job) => {
+        try {
+            // We simulate a prediction log entry that is flagged
+            // since mock jobs are not in the real JobLog table yet.
+            // But if we wanted to make it real, we'd send the job details
+            await API.post("/predict", { 
+                description: `FLAGGED JOB: ${job.description || job.title}`,
+                job_title: job.title,
+                company: job.company
+            });
+            alert("Job has been flagged and reported to administrators for manual verification.");
+        } catch (err) {
+            console.error("Flag error:", err);
+            alert("Failed to flag job. Please try again.");
+        }
     };
 
     const clearFilters = () => {
@@ -154,7 +172,7 @@ const Jobs = () => {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {filteredJobs.map(job => (
-                                    <JobCard key={job.id} job={job} />
+                                    <JobCard key={job.id} job={job} onFlag={handleFlag} />
                                 ))}
                             </div>
                         </>
@@ -182,7 +200,7 @@ const Jobs = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {recommendations.map(job => (
-                                    <JobCard key={job.id} job={job} isRecommendation />
+                                    <JobCard key={job.id} job={job} onFlag={handleFlag} isRecommendation />
                                 ))}
                             </div>
                         </div>
@@ -202,8 +220,17 @@ const Jobs = () => {
     );
 };
 
-const JobCard = ({ job, isRecommendation }) => (
+const JobCard = ({ job, isRecommendation, onFlag }) => (
     <div className={`bg-dark-surface border ${isRecommendation ? 'border-gold/20' : 'border-white/10'} p-8 rounded-[32px] hover:border-gold/30 transition-all hover:shadow-2xl hover:shadow-gold/5 group relative overflow-hidden`}>
+        {/* Flag Button */}
+        <button 
+            onClick={() => onFlag(job)}
+            className="absolute top-6 left-6 p-2 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-lg transition-all z-20"
+            title="Report / Flag as Suspicious"
+        >
+            <Flag size={16} />
+        </button>
+
         {/* Hover Effect highlight */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
