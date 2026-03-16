@@ -30,7 +30,13 @@ export default function Login() {
                 }
             }
         } catch (error) {
-            alert("Invalid Credentials");
+            if (!error.response) {
+                alert("Connection Error: Please ensure the backend server is running on port 5000.");
+            } else if (error.response.status === 401) {
+                alert("Invalid Credentials: Use the correct email/username and password.");
+            } else {
+                alert(error.response.data?.error || "An unexpected error occurred.");
+            }
             console.error("Login Error:", error);
         }
     };
@@ -53,13 +59,13 @@ export default function Login() {
 
                     <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
+                            <label className="text-sm font-medium text-gray-300 ml-1">Email or Username</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                                 <input
-                                    autoComplete="new-password"
-                                    type="email"
-                                    placeholder="name@gmail.com"
+                                    autoComplete="username"
+                                    type="text"
+                                    placeholder="Enter email or username"
                                     className="input-field pl-12"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}

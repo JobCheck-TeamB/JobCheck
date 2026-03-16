@@ -31,7 +31,9 @@ const Navbar = () => {
 
                     {token ? (
                         <>
-                            <Link to="/jobs" className="hover:text-gold transition-colors font-medium">Find Jobs</Link>
+                            {localStorage.getItem("is_admin") !== "true" && (
+                                <Link to="/jobs" className="hover:text-gold transition-colors font-medium">Find Jobs</Link>
+                            )}
                             {localStorage.getItem("is_admin") !== "true" && (
                                 <Link to="/feedback" className="hover:text-gold transition-colors font-medium">Feedback</Link>
                             )}
@@ -119,7 +121,9 @@ const Navbar = () => {
 
                     {token ? (
                         <>
-                            <Link to="/jobs" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Find Jobs</Link>
+                            {localStorage.getItem("is_admin") !== "true" && (
+                                <Link to="/jobs" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Find Jobs</Link>
+                            )}
                             {localStorage.getItem("is_admin") !== "true" && (
                                 <Link to="/feedback" className="text-lg py-2 border-b border-white/5" onClick={() => setIsOpen(false)}>Feedback</Link>
                             )}

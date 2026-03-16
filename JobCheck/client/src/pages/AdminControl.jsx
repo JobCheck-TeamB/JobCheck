@@ -6,8 +6,8 @@ import {
     Zap, TrendingUp, BarChart3, Download, RefreshCcw, Filter, FileText
 } from "lucide-react";
 import AdminAnalytics from "../components/AdminAnalytics";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function AdminControl() {
     const [stats, setStats] = useState({ total_users: 0, total_feedback: 0, total_checks: 0 });
@@ -37,7 +37,9 @@ export default function AdminControl() {
             setError(null);
         } catch (err) {
             console.error("Admin fetch error:", err);
-            setError(err.response?.data?.error || "Failed to load administrative data");
+            const errMsg = err.response?.data?.error || err.response?.data?.msg || err.message || "Failed to load administrative data";
+            const status = err.response?.status ? ` (Status: ${err.response.status})` : " (Network Error)";
+            setError(`${errMsg}${status}`);
         } finally {
             setLoading(false);
         }
@@ -65,7 +67,12 @@ export default function AdminControl() {
             const res = await API.post("/admin/retrain");
             alert(res.data.message);
         } catch (err) {
-            alert(err.response?.data?.error || "Retraining failed");
+            console.error("RETRAIN ERROR:", err);
+            if (err.response) {
+                alert(`Backend Error: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
+            } else {
+                alert(`Network/Client Error: ${err.message}`);
+            }
         } finally {
             setRetraining(false);
         }
@@ -82,6 +89,51 @@ export default function AdminControl() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handleExportPDF = (data, title) => {
+        if (!data || data.length === 0) {
+            alert("No data available to export");
+            return;
+        }
+
+        const doc = new jsPDF();
+        
+        // Add Title
+        doc.setFontSize(20);
+        doc.setTextColor(212, 175, 55); // Gold color
+        doc.text(title, 14, 22);
+        
+        // Add Subtitle/Date
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+
+        // Prepare table data
+        const tableColumn = ["User", "Job Title", "Company", "Result", "Confidence", "Date"];
+        const tableRows = data.map(act => [
+            `@${act.username}`,
+            act.job_title || "Untitled Analysis",
+            act.company || "N/A",
+            act.result,
+            act.confidence,
+            act.timestamp ? act.timestamp.split(' ')[0] : "N/A"
+        ]);
+
+        // Create table
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 40,
+            theme: 'grid',
+            headStyles: { fillColor: [212, 175, 55], textColor: [255, 255, 255] },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            margin: { top: 40 }
+        });
+
+        // Save
+        const fileName = `${title.toLowerCase().replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`;
+        doc.save(fileName);
     };
 
     if (loading) {
@@ -366,7 +418,7 @@ export default function AdminControl() {
                                         .filter(u => 
                                             u.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
                                             (u.fullname || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                            u.email.toLowerCase().includes(searchQuery.toLowerCase())
+                                            (u.email || "").toLowerCase().includes(searchQuery.toLowerCase())
                                         )
                                         .map((u, i) => (
                                         <tr key={i} className="hover:bg-white/5 transition-colors group">
@@ -375,7 +427,7 @@ export default function AdminControl() {
                                                     <div className="w-10 h-10 bg-gold/10 rounded-full flex items-center justify-center text-gold font-bold">{u.fullname?.[0] || u.username[0]}</div>
                                                     <div>
                                                         <div className="font-bold text-white group-hover:text-gold transition-colors">{u.fullname || u.username}</div>
-                                                        <div className="text-xs text-gray-500">{u.email}</div>
+                                                        <div className="text-xs text-gray-500">{u.email || "No email provided"}</div>
                                                     </div>
                                                 </div>
                                             </td>

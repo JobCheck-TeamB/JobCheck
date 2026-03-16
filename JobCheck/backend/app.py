@@ -23,6 +23,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "sqlite:///" + os.path.join(basedir, "users.db")
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["JWT_ERROR_MESSAGE_KEY"] = "error"
+from datetime import timedelta
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -129,16 +132,20 @@ def register():
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
-    email = data.get("email")
+    login_id = data.get("email") # The field is labeled 'email' in frontend but we'll accept username too
     password = data.get("password")
 
-    if not email or not password:
-        return jsonify({"error": "Email and password required"}), 400
+    if not login_id or not password:
+        return jsonify({"error": "Credentials required"}), 400
 
-    user = User.query.filter_by(email=email).first()
+    # Try finding by email first, then by username
+    user = User.query.filter_by(email=login_id).first()
+    if not user:
+        user = User.query.filter_by(username=login_id).first()
 
     if user and check_password_hash(user.password, password):
         access_token = create_access_token(identity=user.username)
+        print(f"Login success: {user.username} ({'Admin' if user.is_admin else 'User'})")
         return jsonify({
             "token": access_token, 
             "username": user.username,
@@ -147,7 +154,11 @@ def login():
             "is_admin": user.is_admin
         })
     else:
-        return jsonify({"error": "Invalid email or password"}), 401
+        if not user:
+            print(f"Login failure: User not found for '{login_id}'")
+        else:
+            print(f"Login failure: Password mismatch for user '{user.username}'")
+        return jsonify({"error": "Invalid credentials"}), 401
 
 # ------------------ FEEDBACK ------------------
 
@@ -186,14 +197,18 @@ def submit_feedback():
 
 def check_admin(username):
     user = User.query.filter_by(username=username).first()
-    return user and user.is_admin
+    is_admin = user and user.is_admin
+    print(f"Checking admin for '{username}': {'FOUND' if user else 'NOT FOUND'}, is_admin={is_admin}")
+    return is_admin
 
 @app.route("/admin/stats", methods=["GET"])
 @jwt_required()
 def admin_stats():
     current_user = get_jwt_identity()
+    print(f"ADMIN REQUEST: /admin/stats from user '{current_user}'")
     if not check_admin(current_user):
-        return jsonify({"error": "Admin access required"}), 403
+        print(f"ADMIN DENIED: /admin/stats for user '{current_user}'")
+        return jsonify({"error": f"Admin access required for user '{current_user}'"}), 403
     
     user_count = User.query.count()
     feedback_count = Feedback.query.count()
@@ -246,10 +261,16 @@ def admin_feedback():
 @jwt_required()
 def admin_activity():
     current_user = get_jwt_identity()
+    print(f"ADMIN REQUEST: /admin/activity from user '{current_user}'")
     if not check_admin(current_user):
         return jsonify({"error": "Admin access required"}), 403
     
-    logs = db.session.query(JobLog, User).join(User, JobLog.user_id == User.id).order_by(JobLog.timestamp.desc()).all()
+    try:
+        logs = db.session.query(JobLog, User).join(User, JobLog.user_id == User.id).order_by(JobLog.timestamp.desc()).all()
+        print(f"Retrieved {len(logs)} activity logs")
+    except Exception as e:
+        print(f"DATABASE ERROR in admin_activity: {e}")
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
     log_list = [{
         "id": log.JobLog.id,
         "username": log.User.username,
@@ -345,8 +366,10 @@ def predict():
     user = User.query.filter_by(username=current_username).first()
     
     data = request.json.get("description")
-    job_title = request.json.get("job_title", "")
-    company = request.json.get("company", "")
+    job_title = request.json.get("job_title")
+    job_title = job_title if job_title and job_title.strip() else "Untitled Analysis"
+    company = request.json.get("company")
+    company = company if company and company.strip() else "N/A"
 
     if not data:
         return jsonify({"error": "No description provided"}), 400
@@ -384,4 +407,4 @@ def predict():
 # ------------------
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)
